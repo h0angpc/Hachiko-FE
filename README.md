@@ -25,6 +25,18 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Run the emulator
+
+With flutter installed, run the following command to start the emulator:
+```bash
+flutter emulators --launch [emulator_id]
+```
+
+Example:
+```bash
+flutter emulators --launch Pixel_4_XL_API_34
+```
+
 ## Get a fresh project
 
 When you're ready, run:
