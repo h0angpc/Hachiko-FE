@@ -7,6 +7,11 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Feather from '@expo/vector-icons/Feather';
+import Entypo from '@expo/vector-icons/Entypo';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -27,7 +32,7 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="home"
+        name="index"
         options={{
           title: 'Trang chủ',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
@@ -37,28 +42,28 @@ export default function TabLayout() {
         name="order"
         options={{
           title: 'Đặt hàng',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Feather name="coffee" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="shop"
         options={{
           title: 'Cửa hàng',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Entypo name="shop" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="coupon"
         options={{
           title: 'Ưu đãi',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcons name="discount" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="other"
         options={{
           title: 'Khác',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome name="reorder" size={24} color={color} />,
         }}
       />
     </Tabs>
