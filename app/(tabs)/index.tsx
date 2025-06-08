@@ -1,16 +1,5 @@
-import { SafeAreaView, View } from 'react-native';
+import { Redirect } from "expo-router";
 
-import Header from '@/components/Home/Header';
-import Slider from '@/components/Home/Slider';
-import { ThemedView } from '@/components/ThemedView';
-import Category from '@/components/Home/Category';
-
-export default function HomeScreen() {
-    return (
-        <ThemedView className='flex'>
-            <Header />
-            <Slider />
-            <Category />
-        </ThemedView>
-    );
+export default function Index() {
+    return <Redirect href="/(tabs)/home" />;
 }

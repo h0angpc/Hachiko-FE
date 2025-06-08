@@ -1,162 +1,228 @@
-import { Category, Collection, Drinks, Header } from "@/components/OrderScreen";
-import { OrderStore } from "@/constants";
-import { useOrderStore } from "@/stores";
-import { useRef } from "react";
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import {
+  Category,
+  CheckoutBtn,
+  Collection,
+  DrinkSlotHorizontal,
+  Header,
+} from "@/components/OrderScreen";
+import { useEffect, useRef, useState } from "react";
+import {
+  View,
+  SafeAreaView,
+  ActivityIndicator,
+  Text,
+  FlatList,
+  ListRenderItemInfo,
+} from "react-native";
+import apiService from "@/constants/config/axiosConfig";
+import { ICategory, IProductByCategory } from "@/constants/interface";
+import { useApi } from "@/hooks/useApi";
+import React from "react";
+import { useLocalSearchParams } from 'expo-router';
+
+type SectionItem = {
+  type: "collection" | "category";
+  categoryId?: string;
+  categoryName?: string;
+  products?: any[];
+};
+
+const ITEM_HEIGHT_COLLECTION = 500;
+const ITEM_HEIGHT_PRODUCT = 150;
+const HEADER_HEIGHT = 40;
 
 export default function OrderScreen() {
-  const drinkProps = [
-    {
-      drink_img: require("@/assets/images/Products/tra-sua-o-long.png"),
-      drink_name: "Trà sữa trân châu trắng - Truyền thống - Đá xay nhuyễn",
-      drink_price: 25000,
-      drink_description: `Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, 
-      xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, 
-      xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? 
-      Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? c gì? c gì? c gì? Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon
-      Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm c gì?`,
-    },
-    {
-      drink_img: require("@/assets/images/Products/ca-phe-goi.jpg"),
-      drink_name: "Cà phê gói - Đen - Đá xay nhuyễn",
-      drink_price: 15000,
-      drink_description: `Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, 
-      xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, 
-      xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? 
-      Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? c gì? c gì? c gì? Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon
-      Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm c gì?`,
-    },
-    {
-      drink_img: require("@/assets/images/Products/thung-ca-phe.jpg"),
-      drink_name: "Thùng cà phê - Đen - Đá xay nhuyễn",
-      drink_price: 260000,
-      drink_description: `Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, 
-      xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, 
-      xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? 
-      Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? c gì? c gì? c gì? Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon
-      Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm c gì?`,
-    },
-    {
-      drink_img: require("@/assets/images/Products/tra-xanh-nong.jpg"),
-      drink_name: "Trà xanh nóng - Uống phỏng lưỡi",
-      drink_price: 2000,
-      drink_description: `Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, 
-      xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, 
-      xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? 
-      Mua đi bạn, ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, 
-      ngon vc, xem miêu tả làm c gì? c gì? c gì? c gì? Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, ngon
-      Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm Mua đi bạn, ngon vc, xem miêu tả làm c gì? Mua đi bạn, 
-      ngon Mua đi bạn, ngon vc, xem miêu tả làm c gì? vc, xem miêu tả làm c gì?`,
-    },
-  ];
+  // Get the voucher ID from route params
+  const params = useLocalSearchParams();
+  const voucherId = params.voucherId as string;
 
-  const categories = [
-    "Món mới",
-    "Trà trái cây",
-    "Trà sữa",
-    // "Trà xanh",
-    // "Đá xay",
-    // "Cà phê",
-    // "Bánh ngọt",
-    // "Bánh mặn",
-    // "Cơm nhà",
-    // "Đồ uống nóng",
-    // "Đồ uống đóng gói",
-    // "Topping",
-  ];
+  const flatListRef = useRef<FlatList>(null);
+  const {
+    loading: categoryLoading,
+    errorMessage: categoryErrorMessage,
+    callApi: callCategoryApi,
+  } = useApi<void>();
 
-  const drinks = useOrderStore((state) => (state as OrderStore).drinks);
-  const clearDrinks = useOrderStore(
-    (state) => (state as OrderStore).clearDrinks
+  const {
+    loading: productLoading,
+    errorMessage: productErrorMessage,
+    callApi: callProductApi,
+  } = useApi<void>();
+
+  const [categoryGroups, setCategoryGroups] = useState<IProductByCategory[]>(
+    []
   );
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [sectionData, setSectionData] = useState<SectionItem[]>([]);
 
-  const scrollViewRef = useRef<ScrollView>(null);
-  const sectionsRef: { [key: string]: React.RefObject<View> } = {
-    "Món mới": useRef<View>(null),
-    "Trà trái cây": useRef<View>(null),
-    "Trà sữa": useRef<View>(null),
-    "Trà xanh": useRef<View>(null),
-    "Đá xay": useRef<View>(null),
-    "Cà phê": useRef<View>(null),
-    "Bánh ngọt": useRef<View>(null),
-    "Bánh mặn": useRef<View>(null),
-    "Cơm nhà": useRef<View>(null),
-    "Đồ uống nóng": useRef<View>(null),
-    "Đồ uống đóng gói": useRef<View>(null),
-    Topping: useRef<View>(null),
-  };
-
-  const handleScroll = (category: string) => {
-    const section = sectionsRef[category]?.current;
-    const scrollView = scrollViewRef.current;
-    if (section && scrollView) {
-      section.measure((pageX: number, pageY: number) => {
-        scrollView.scrollTo({ x: pageX, y: pageY - 35, animated: true });
+  const scrollToCategory = (categoryId: string) => {
+    console.log("Scrolling to category:", categoryId);
+    const index = sectionData.findIndex(
+      (item) => item.categoryId === categoryId
+    );
+    console.log("Index to scroll to:", index);
+    if (index !== -1 && flatListRef.current) {
+      flatListRef.current.scrollToIndex({
+        index,
+        animated: true,
       });
     }
   };
 
-  const handleToPayment = () => {
-    console.log("tinh tien di cu");
+  const getCategoryName = (categoryId: string): string => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category ? category.name : `Danh mục ${categoryId}`;
+  };
+
+  const checkHasTopping = (categoryId: string) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category ? category.hasToppings : false;
+  };
+
+  const getProductName = (productId: string): string => {
+    const product = categoryGroups
+      .flatMap((group) => group.products)
+      .find((prod) => prod.id === productId);
+    return product ? product.title : `Sản phẩm ${productId}`;
+  };
+
+  useEffect(() => {
+    const fetchCategoryData = async () => {
+      await callCategoryApi(async () => {
+        const { data } = await apiService.get("/categories");
+        setCategories(data);
+      });
+    };
+
+    const fetchProductData = async () => {
+      await callProductApi(async () => {
+        const { data } = await apiService.get("/products/grouped-by-category");
+        setCategoryGroups(data);
+      });
+    };
+
+    fetchCategoryData();
+    fetchProductData();
+  }, []);
+
+  useEffect(() => {
+    if (categoryGroups.length > 0) {
+      const sections: SectionItem[] = [
+        { type: "collection" },
+        ...categoryGroups.map((group) => ({
+          type: "category" as const,
+          categoryId: group.categoryID,
+          categoryName: getCategoryName(group.categoryID),
+          products: group.products,
+        })),
+      ];
+      setSectionData(sections);
+    }
+  }, [categoryGroups, categories]);
+
+  useEffect(() => {
+    if (categoryErrorMessage) {
+      console.error("❌ Lỗi khi lấy danh sách danh mục:", categoryErrorMessage);
+    }
+    if (productErrorMessage) {
+      console.error("❌ Lỗi khi lấy danh sách sản phẩm:", productErrorMessage);
+    }
+  }, [categoryErrorMessage, productErrorMessage]);
+
+  const SectionListItem = React.memo(({ item }: { item: SectionItem }) => {
+    if (item.type === "collection") {
+      return (
+        <View className="mt-0">
+          <Category
+            categories={categories}
+            loading={categoryLoading}
+            scrollToCategory={scrollToCategory}
+          />
+          {/* <Collection /> */}
+        </View>
+      );
+    }
+
+    return (
+      <View className="flex-col pb-4 border-b border-gray-100">
+        <Text className="font-bold text-xl px-4 py-2">{item.categoryName}</Text>
+        <View>
+          {item.products?.map((drink, index) => (
+            <View key={index} className="mb-3">
+              <DrinkSlotHorizontal drink={drink} check={checkHasTopping} />
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  });
+
+  const renderItem = ({ item }: ListRenderItemInfo<SectionItem>) => {
+    return <SectionListItem item={item} />;
+  };
+
+  const keyExtractor = (item: SectionItem, index: number) => {
+    if (item.type === "collection") return "collection";
+    return `cat-${item.categoryId ?? index}`;
+  };
+
+  const getItemLayout = (
+    data: ArrayLike<SectionItem> | null | undefined,
+    index: number
+  ) => {
+    let offset = 0;
+
+    for (let i = 0; i < index; i++) {
+      const item = sectionData[i];
+
+      if (item.type === "collection") {
+        offset += ITEM_HEIGHT_COLLECTION;
+      } else if (item.type === "category" && item.products) {
+        offset += HEADER_HEIGHT + item.products.length * ITEM_HEIGHT_PRODUCT;
+      }
+    }
+
+    const currentItem = sectionData[index];
+    let length = ITEM_HEIGHT_COLLECTION;
+
+    if (currentItem?.type === "category" && currentItem.products) {
+      length =
+        HEADER_HEIGHT + currentItem.products.length * ITEM_HEIGHT_PRODUCT;
+    }
+
+    return { length, offset, index };
   };
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="absolute top-0 left-0 right-0 z-10 bg-white">
-        <Header />
+    <SafeAreaView className="flex-1 bg-white">
+      <Header />
+
+      <View className="flex-1 bg-white">
+        {productLoading ? (
+          <View className="flex-1 items-center justify-center h-full">
+            <ActivityIndicator size="large" color="#FF8C00" />
+          </View>
+        ) : categories.length === 0 ? (
+          <View className="flex-1 items-center justify-center h-full">
+            <Text className="text-lg text-gray-500">Chưa có sản phẩm</Text>
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={sectionData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            getItemLayout={getItemLayout}
+            initialNumToRender={5}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            contentContainerStyle={{ paddingTop: 0, paddingBottom: 80 }}
+            removeClippedSubviews
+          />
+        )}
       </View>
-      <ScrollView
-        className={`mt-16 ${drinks.length > 0 && "mb-10"}`}
-        ref={scrollViewRef}
-      >
-        <Category handleScroll={handleScroll} />
-        <Collection />
-        {categories.map((category) => (
-          <View key={category} ref={sectionsRef[category]}>
-            <Drinks title={category} drinks={drinkProps} />
-          </View>
-        ))}
-      </ScrollView>
-      {drinks.length > 0 && (
-        <View className="absolute bottom-0 left-0 w-full bg-white p-3 shadow-lg flex-row justify-between items-center">
-          <View>
-            <Text className="text-xl font-bold text-red-500">
-              {drinks
-                .reduce((sum, drink) => sum + drink.drink_price, 0)
-                .toLocaleString("vi-VN")}
-              đ
-            </Text>
-          </View>
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              className="bg-gray-300 px-4 py-2 rounded-lg"
-              onPress={clearDrinks}
-            >
-              <Text className="text-gray-800 font-bold text-lg">Hủy</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="bg-red-500 px-4 py-2 rounded-lg"
-              onPress={handleToPayment}
-            >
-              <Text className="text-white font-bold text-lg">Đặt hàng</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-    </View>
+
+      <CheckoutBtn getProductName={getProductName} voucherId={voucherId} />
+    </SafeAreaView>
   );
 }
